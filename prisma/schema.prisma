@@ -1,0 +1,128 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Get a free hosted Postgres database in seconds: `npx create-db`
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+model RestaurantTable {
+  id          Int     @id @default(autoincrement())
+  tableNumber String  @unique
+  capacity    Int
+  isActive    Boolean @default(true)
+
+  reservations Reservation[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Customer {
+  id           Int           @id @default(autoincrement())
+  name         String?
+  phone        String        @unique
+  token        String        @unique
+  reservations Reservation[]
+  orders       Order[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model MenuCategory {
+  id          Int     @id @default(autoincrement())
+  name        String  @unique
+  description String?
+  isActive    Boolean @default(true)
+
+  items MenuItem[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model MenuItem {
+  id          Int     @id @default(autoincrement())
+  name        String
+  description String?
+  price       Float
+  isAvailable Boolean @default(true)
+
+  category   MenuCategory? @relation(fields: [categoryId], references: [id])
+  categoryId Int?
+
+  orderItems OrderItem[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Reservation {
+  id         Int               @id @default(autoincrement())
+  customerId Int
+  tableId    Int
+  startTime  DateTime
+  endTime    DateTime
+  guests     Int
+  status     ReservationStatus @default(PENDING)
+  notes      String?
+
+  customer Customer        @relation(fields: [customerId], references: [id])
+  table    RestaurantTable @relation(fields: [tableId], references: [id])
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([startTime])
+  @@index([endTime])
+  @@index([tableId, startTime, endTime])
+}
+
+model Order {
+  id          Int         @id @default(autoincrement())
+  customerId  Int
+  status      OrderStatus @default(PENDING)
+  totalAmount Float
+  notes       String?
+
+  customer Customer    @relation(fields: [customerId], references: [id])
+  items    OrderItem[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([createdAt])
+}
+
+model OrderItem {
+  id         Int   @id @default(autoincrement())
+  orderId    Int
+  menuItemId Int
+  quantity   Int
+  price      Float
+
+  order    Order    @relation(fields: [orderId], references: [id])
+  menuItem MenuItem @relation(fields: [menuItemId], references: [id])
+}
+
+enum ReservationStatus {
+  PENDING
+  CONFIRMED
+  CANCELLED
+  COMPLETED
+}
+
+enum OrderStatus {
+  PENDING
+  CONFIRMED
+  PREPARING
+  READY
+  COMPLETED
+  CANCELLED
+}
