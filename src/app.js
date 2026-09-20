@@ -5,6 +5,7 @@ const customerRoutes = require("./routes/customer.routes");
 const reservationRoutes = require("./routes/reservation.routes");
 const orderRoutes = require("./routes/order.routes");
 const aiRoutes = require("./routes/ai.routes");
+const whatsappRoutes = require("./routes/whatsapp.routes");
 
 const app = express();
 
@@ -22,5 +23,6 @@ app.use("/api/customers", customerRoutes);
 app.use("/api/reservations", reservationRoutes);
 app.use("/api/orders", orderRoutes);
 app.use("/api/ai", aiRoutes);
+app.use("/api/whatsapp", whatsappRoutes);
 
 module.exports = app;
