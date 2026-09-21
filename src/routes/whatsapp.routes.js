@@ -18,12 +18,23 @@ router.get("/webhook", (req, res) => {
 });
 
 // Receive WhatsApp events
-router.post("/webhook", (req, res) => {
-  console.log("WhatsApp webhook received:");
-  console.log(JSON.stringify(req.body, null, 2));
+// Receive Vonage WhatsApp messages
+router.post("/webhook/whatsapp", async (req, res) => {
+  try {
+    console.log("Vonage WhatsApp webhook received:");
+    console.log(JSON.stringify(req.body, null, 2));
 
-  // Acknowledge Meta
-  return res.sendStatus(200);
+    const message = req.body.text;
+    const phone = req.body.from;
+
+    console.log("Message:", message);
+    console.log("Phone:", phone);
+
+    return res.sendStatus(200);
+  } catch (error) {
+    console.error("WhatsApp webhook error:", error);
+    return res.sendStatus(500);
+  }
 });
 
 module.exports = router;
