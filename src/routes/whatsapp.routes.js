@@ -1,4 +1,5 @@
 const express = require("express");
+const { runAI } = require("../services/ai.service");
 
 const router = express.Router();
 
@@ -19,19 +20,48 @@ router.get("/webhook", (req, res) => {
 
 // Receive WhatsApp events
 // Receive Vonage WhatsApp messages
+
+
 router.post("/webhook/whatsapp", async (req, res) => {
   try {
-    console.log("BODY:", req.body);
-    console.log("HEADERS:", req.headers);
+    console.log("Vonage WhatsApp webhook received:");
+    console.log(JSON.stringify(req.body, null, 2));
+
+    const message = req.body.text;
+    const phone = req.body.from;
+
+    // Ignore non-text messages for now
+    if (!message || !phone) {
+      return res.status(200).json({
+        success: true,
+        message: "Non-text message ignored",
+      });
+    }
+
+    console.log("Customer phone:", phone);
+    console.log("Customer message:", message);
+
+    // We will connect conversation history later.
+    const conversation = "";
+
+    const aiResponse = await runAI(
+      message,
+      conversation,
+      phone
+    );
+
+    console.log("AI response:", aiResponse);
 
     return res.status(200).json({
       success: true,
-      body: req.body,
+      response: aiResponse,
     });
   } catch (error) {
+    console.error("WhatsApp webhook error:", error);
+
     return res.status(500).json({
       success: false,
-      error: error.message,
+      message: "WhatsApp AI request failed",
     });
   }
 });
