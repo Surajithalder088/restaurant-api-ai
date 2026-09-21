@@ -21,32 +21,18 @@ router.get("/webhook", (req, res) => {
 // Receive Vonage WhatsApp messages
 router.post("/webhook/whatsapp", async (req, res) => {
   try {
-    console.log("Vonage WhatsApp webhook received:");
-    console.log(JSON.stringify(req.body, null, 2));
-
-    const message = req.body.text;
-    const phone = req.body.from;
-
-    console.log("Message:", message);
-    console.log("Phone:", phone);
+    console.log("BODY:", req.body);
+    console.log("HEADERS:", req.headers);
 
     return res.status(200).json({
       success: true,
-      message: "Webhook received successfully",
-      received: {
-        message,
-        phone,
-      },
+      body: req.body,
     });
   } catch (error) {
-    console.error("WhatsApp webhook error:", error);
-
     return res.status(500).json({
       success: false,
       error: error.message,
-      stack: error.stack,
     });
   }
 });
-
 module.exports = router;
