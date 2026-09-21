@@ -30,10 +30,22 @@ router.post("/webhook/whatsapp", async (req, res) => {
     console.log("Message:", message);
     console.log("Phone:", phone);
 
-    return res.sendStatus(200);
+    return res.status(200).json({
+      success: true,
+      message: "Webhook received successfully",
+      received: {
+        message,
+        phone,
+      },
+    });
   } catch (error) {
     console.error("WhatsApp webhook error:", error);
-    return res.sendStatus(500);
+
+    return res.status(500).json({
+      success: false,
+      error: error.message,
+      stack: error.stack,
+    });
   }
 });
 
