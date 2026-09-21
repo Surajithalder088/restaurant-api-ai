@@ -21,7 +21,6 @@ router.get("/webhook", (req, res) => {
 // Receive WhatsApp events
 // Receive Vonage WhatsApp messages
 
-
 router.post("/webhook/whatsapp", async (req, res) => {
   try {
     console.log("Vonage WhatsApp webhook received:");
@@ -30,7 +29,7 @@ router.post("/webhook/whatsapp", async (req, res) => {
     const message = req.body.text;
     const phone = req.body.from;
 
-    // Ignore non-text messages for now
+    // Ignore non-text messages
     if (!message || !phone) {
       return res.status(200).json({
         success: true,
@@ -41,9 +40,10 @@ router.post("/webhook/whatsapp", async (req, res) => {
     console.log("Customer phone:", phone);
     console.log("Customer message:", message);
 
-    // We will connect conversation history later.
+    // Conversation history will be connected later
     const conversation = "";
 
+    // Send message to existing AI service
     const aiResponse = await runAI(
       message,
       conversation,
@@ -52,9 +52,47 @@ router.post("/webhook/whatsapp", async (req, res) => {
 
     console.log("AI response:", aiResponse);
 
+    // Send AI response back to WhatsApp through Vonage
+    const vonageResponse = await fetch(
+      "https://messages-sandbox.nexmo.com/v1/messages",
+      {
+        method: "POST",
+
+        headers: {
+          "Content-Type": "application/json",
+          "Accept": "application/json",
+          "Authorization":
+            "Basic " +
+            Buffer.from(
+              `${'5c385db8'}:${process.env.VONAGE_API_SECRET}`
+            ).toString("base64"),
+        },
+
+        body: JSON.stringify({
+          from: "14157386102",
+          to: phone,
+          message_type: "text",
+          text: aiResponse,
+          channel: "whatsapp",
+        }),
+      }
+    );
+
+    const vonageData = await vonageResponse.json();
+
+    console.log("Vonage send status:", vonageResponse.status);
+    console.log("Vonage send response:", vonageData);
+
+    if (!vonageResponse.ok) {
+      throw new Error(
+        `Vonage message send failed: ${JSON.stringify(vonageData)}`
+      );
+    }
+
     return res.status(200).json({
       success: true,
       response: aiResponse,
+      vonage: vonageData,
     });
   } catch (error) {
     console.error("WhatsApp webhook error:", error);
@@ -65,4 +103,6 @@ router.post("/webhook/whatsapp", async (req, res) => {
     });
   }
 });
+
+
 module.exports = router;
